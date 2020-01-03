@@ -34,7 +34,7 @@ typedef struct list list;
 
 //  list_empty: crée une structure de donnés correspondant à une liste vide et
 //    renvois son pointeur associé ou NULL en cas de dépassement de capacitée
-extern list *list_empty();
+extern list *list_empty(void);
 
 //  list_put: insère l'élément xptr en queue de la liste associée à l, renvoies
 //    NULL si xptr vaut NULL ou en cas de dépassement de capacitée, renvois xptr

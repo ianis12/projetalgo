@@ -2,6 +2,8 @@
 //    données représantant un mot ainsi que les lexiques dans lesquelles on le
 //    trouve et aussi les lignes sur lesquelles il apparait dans un hypotétique
 //    texte non spécifié dans ce module.
+//    Dans le cadre de ce projet, le nom du mot n'est pas requis puisque
+//    celui-ci est déjà contenu dans le holdall de glosaries
 
 #ifndef WORD__H
 #define WORD__H
@@ -31,10 +33,9 @@ typedef struct word word;
 //    word_next_line, word_can_next_line, word_reset_current_line,
 //    word_next_glosary, word_can_next_glosary, word_reset_current_glosary 
 
-//  word_create: crée une structure de donnée correspondant un mot ayant pour
-//    nom la chaine de caractères représenté par value et renvois son adresse ou
-//    NULL si il y a eu dépassement de capacitée
-extern word *word_create(char *value);
+//  word_create: crée une structure de donnée correspondant à un mot et renvois 
+//    son adresse ou NULL si il y a eu dépassement de capacitée
+extern word *word_create(void);
 
 //  word_add_line: ajoute aux lignes sur lesquelles on peut trouver le mot w
 //    dans le texte, la ligne line et renvois true en cas de succès, false en 
@@ -101,4 +102,5 @@ extern void word_reset_current_glosary(word *w);
 //  word_dispose: libère toutes les ressources associés à la structure de *w 
 //    puis affecte à *w la valeur NULL
 extern void word_dispose(word **w);
+
 #endif

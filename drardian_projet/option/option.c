@@ -2,14 +2,17 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#include "list.h"
+#include "../list/list.h"
 #include "option.h"
+
+#define FUN_FAILURE -1
+#define FUN_SUCCESS 0
 
 #define OPT_LONG "--"
 #define OPT_LONG_HELP OPT_LONG "help"
 #define OPT_LONG_SORT OPT_LONG "sort"
 #define OPT_LONG_CASE OPT_LONG "case"
-#define OPT_LONG_INPUT OPT_LONG "input"
+#define OPT_LONG_INPUT_ANONYM OPT_LONG "input"
 #define OPT_LONG_OUTPUT OPT_LONG "output"
 
 #define ARG_EQUAL "="
@@ -23,7 +26,8 @@
 #define OPT_SHORT_LOWER OPT_SHORT "l"
 #define OPT_SHORT_AS_IS OPT_SHORT "s"
 #define OPT_SHORT_UPPER OPT_SHORT "u"
-#define OPT_SHORT_INPUT OPT_SHORT "i"
+#define OPT_SHORT_INPUT OPT_SHORT ""
+#define OPT_SHORT_INPUT_ANONYM OPT_SHORT "i"
 #define OPT_SHORT_OUPUT OPT_SHORT "o"
 
 
@@ -50,8 +54,8 @@ int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
   *lowerCase = false;
   *upperCase = false;
   *asIsCase = false;
-  *inputFileNamesList = ldigs_empty();
-  *ouputFileNamesList = ldigs_empty();
+  inputFileNamesList = list_empty();
+  outputFileNamesList = list_empty();
 
 // OPTIONS:
   bool isWaitingForInputFile = false;
@@ -62,14 +66,14 @@ int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
       if (!validFile(argv[k])) {
         return FUN_FAILURE;
       }
-      list_put(*inputFileNamesList);
+      list_put(inputFileNamesList, argv[k]);
       continue;
     }
     if (isWaitingForOutputFile) {
       if (!validFile(argv[k])) {
         return FUN_FAILURE;
       }
-      ldigs_add(*outputFileNamesList);
+      list_put(outputFileNamesList, argv[k]);
       continue;
     }
     if (strcmp(argv[k], OPT_LONG_HELP) == 0) {

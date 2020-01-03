@@ -41,7 +41,7 @@ struct list {
 
 // list_empty: crée une structure de donnés correspondant à une liste vide et
 //    renvois son pointeur associé ou NULL en cas de dépassement de capacitée
-list *list_empty() {
+list *list_empty(void) {
   list *l = malloc(sizeof(list));
   if (l == NULL) {
     return NULL;

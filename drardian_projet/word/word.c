@@ -4,7 +4,7 @@
 //    texte non spécifié ici.
 
 #include <stdlib.h>
-#include "list.h"
+#include "../list/list.h"
 #include "word.h"
 
 //  struct word, word: structure permettant de gérer un mot
@@ -18,7 +18,6 @@
 typedef struct word word;
 
 struct word {
-  char *name;
   list *lines;
   list *glosaries;
 };
@@ -35,15 +34,13 @@ struct word {
 //    word_next_line, word_can_next_line, word_reset_current_line,
 //    word_next_glosary, word_can_next_glosary, word_reset_current_glosary 
 
-//  word_create: crée une structure de donnée correspondant un mot ayant pour
-//    nom la chaine de caractères représenté par value et renvois son adresse ou
-//    NULL si il y a eu dépassement de capacitée
-word *word_create(char *value) {
+//  word_create: crée une structure de donnée correspondant un mot et renvois
+//    son adresse ou NULL si il y a eu dépassement de capacitée
+word *word_create(void) {
   word *w = malloc(sizeof(word));
   if (w == NULL) {
     return NULL;
   }
-  w->name = value;
   w->lines = list_empty();
   if (w->lines == NULL) {
     free(w);
@@ -51,7 +48,7 @@ word *word_create(char *value) {
   }
   w->glosaries = list_empty();
   if (w->glosaries == NULL) {
-    free(w->lines);
+    list_dispose(&w->lines);
     free(w);
     return NULL;
   }
@@ -151,8 +148,8 @@ void word_reset_current_glosary(word *w) {
 //  word_dispose: libère toutes les ressources associés à la structure de *w 
 //    puis affecte à *w la valeur NULL
 void word_dispose(word **w) {
-  list_dispose(&((*w)->glosaries));
-  list_dispose(&((*w)->lines));
+  list_dispose(&(*w)->glosaries);
+  list_dispose(&(*w)->lines);
   free(w);
   *w = NULL;
 }

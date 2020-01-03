@@ -21,9 +21,6 @@
 #define PRINT_ERR(format, ...)  PRINT__STDERR("Error", format, __VA_ARGS__)
 #define PRINT_WRN(format, ...)  PRINT__STDERR("Warning", format, __VA_ARGS__)
 
-#define STR(s)  #s
-#define XSTR(s) STR(s)
-
 void fileTreatment(FILE *tabFileInput, FILE *tabFileOutput);
 
 int main(int argc, char **argv) {
