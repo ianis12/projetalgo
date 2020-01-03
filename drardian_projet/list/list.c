@@ -1,4 +1,10 @@
-#include <stdbool.h>
+//  Implantation polymorphe pour la spécification du TDA Liste(T) dans le cas 
+//    d'une liste simplement chainée avec insertion en queue et avec 
+//    spécification d'une méthode simple d'itération efficace sur ses éléments dans
+//    l'ordre de la liste, grâce à un pointeur d'élément courant qui peut soit 
+//    avancer (grâce à la fonction list_next) ou revenir au début de la liste
+//    (grâce à la fonction list_reset_current).
+
 #include <stdlib.h>
 #include "list.h"
 
@@ -40,6 +46,7 @@ list *list_empty() {
   if (l == NULL) {
     return NULL;
   }
+  l->head = NULL;
   l->tail = NULL;
   l->size = 0;
   l->current = NULL;
@@ -102,7 +109,7 @@ void list_reset_current(list *l) {
 // list_is_empty: retourne un booléen représentant l'état de vacuité de la liste
 //    associée a l, true si la liste est vide, false sinon
 bool list_is_empty(const list *l) {
-  return l->size;
+  return l->size == 0;
 }
 
 // list_size: retourne le nombre d'éléments présent dans la liste associée a l
@@ -112,6 +119,13 @@ size_t list_size(const list *l) {
 
 // list_dispose: libère toutes les ressources associés à la structure de *l puis
 //    affecte à *l la valeure NULL
-//void list_dispose(list **l) {
-
-//}
+void list_dispose(list **l) {
+	if ((*l)->head != NULL) {
+		cell *cptr = (*l)->head;
+		(*l)->head = (*l)->head->next;
+		free(cptr);
+		list_dispose(l);
+	}
+	free(l);
+	*l = NULL;
+}
