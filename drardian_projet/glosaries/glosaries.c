@@ -116,10 +116,10 @@ bool glosaries_add(glosaries *g, const char *str, size_t line) {
   return true;
 }
 
-// glosaries_informations: retourne les informations lié à notre 
+// glosaries_display: retourne les informations lié à notre 
 //    glosaries tel que sa présence dans les différents lexiques
 //    ainsi que son numéro de ligne dans notre texte.    
-bool glosaries_informations(glosaries *g, FILE *f) {
+bool glosaries_display(glosaries *g, FILE *f) {
   fprintf(f, "\t\t");
   while (list_can_next(g->l_gl)) {
     fprintf(f, "%s", (char *) list_next(g->l_gl));
@@ -280,5 +280,3 @@ int word_file_display(char *cptr, struct word_file_list *w_f_l) {
   fprintf(f, "\n");
   return FUN_SUCCESS;
 }
-
-
