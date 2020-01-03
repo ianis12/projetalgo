@@ -4,7 +4,7 @@
 //    texte non spécifié ici.
 
 #include <stdlib.h>
-#include "../list/list.h"
+#include "list.h"
 #include "word.h"
 
 //  struct word, word: structure permettant de gérer un mot
@@ -18,9 +18,9 @@
 typedef struct word word;
 
 struct word {
-	char *name;
-	list lines;
-	list glosaries;
+  char *name;
+  list *lines;
+  list *glosaries;
 };
 
 //  Les fonctions qui suivent ont un comportement indéterminié si l'adresse de 
@@ -33,46 +33,65 @@ struct word {
 //    prèsque immédiatement de l'inteface list.h à ceci près que ces fonction
 //    ont été ôté de leur caractère polymorphe pour une uttilisation simplifiée:
 //    word_next_line, word_can_next_line, word_reset_current_line,
-//    word_next_glossary, word_can_next_glossary, word_reset_current_glossary 
+//    word_next_glosary, word_can_next_glosary, word_reset_current_glosary 
 
 //  word_create: crée une structure de donnée correspondant un mot ayant pour
 //    nom la chaine de caractères représenté par value et renvois son adresse ou
 //    NULL si il y a eu dépassement de capacitée
 word *word_create(char *value) {
-	word *w = malloc(sizeof(word));
-	if (w == NULL) {
-		return NULL;
-	}
-	w->name = value;
-	list *l = list_empty();
-	if (l == NULL) {
-		free(w);
-		return NULL;
-	}
-	w->lines = *l;
-	return w;
+  word *w = malloc(sizeof(word));
+  if (w == NULL) {
+    return NULL;
+  }
+  w->name = value;
+  w->lines = list_empty();
+  if (w->lines == NULL) {
+    free(w);
+    return NULL;
+  }
+  w->glosaries = list_empty();
+  if (w->glosaries == NULL) {
+    free(w->lines);
+    free(w);
+    return NULL;
+  }
+  return w;
 }
 
 //  word_add_line: ajoute aux lignes sur lesquelles on peut trouver le mot w
 //    dans le texte, la ligne line et renvois true en cas de succès, false en 
 //    cas de dépassement de capacité
 bool word_add_line(word *w, size_t line) {
-	
+  size_t *l = malloc(sizeof(size_t));
+  if (l == NULL) {
+    return false;
+  }
+  *l = line;
+  if (list_put(w->lines, l) == NULL) {
+    free(l);
+    return false;
+  }
+  return true;
 }
 
-//  word_add_glossary: ajoute aux lexiques dans lesquels le mot w apparait,
-//    le lexique représenté par la chaine de caratère glossary et renvois true
+//  word_add_glosary: ajoute aux lexiques dans lesquels le mot w apparait,
+//    le lexique représenté par la chaine de caratère glosary et renvois true
 //    en cas de succès, false en cas de débordement de capacité
 //  Il est bon à noter qu'aucun test n'est fait sur la chaine de caractère 
-//    glossary, aussi est il possible d'ajouter NULL au mot word. Cela étant
+//    glosary, aussi est il possible d'ajouter NULL au mot word. Cela étant
 //    due aux module list uttilisé, et souhaitant une performance optimale,
 //    dans ce cas-ci, la fonction renverra false et il ne sera pas possible de
 //    différencier un débordement de capacitée d'une execution normale autrement
 //    qu'en vérifiant manuellement la fin des lexiques a l'aide des fonctions 
 //    word_next_line et word_can_next_line, pour vérifier que NULL y est bien 
 //    présent. Pour cette raison, il est fortement déconseillé de passer NULL 
-//    comme valeure associée à la chaine de caractère glossary
-extern bool word_add_glossary(word *w, char *glossary);
+//    comme valeure associée à la chaine de caractère glosary
+bool word_add_glosary(word *w, const char *glosary) {
+  if (list_put(w->glosaries, glosary) == NULL) {
+    return false;
+  }
+  return true;
+}
 
 //  word_next_line: renvois la ligne courante de w et passe à la suivante.
 //    Cette fonction doit être éxécutée seulement si word_can_next_line(w) a
@@ -81,7 +100,9 @@ extern bool word_add_glossary(word *w, char *glossary);
 //    vous avez une preuve que l'objet courant existe bel et bien.
 //    Pour plus de clartée sur cette fonction, se référer à la fonction 
 //    list_next du module list comme spécifié dans l'entête de ce fichier
-extern size_t word_next_line(word *w);
+size_t word_next_line(word *w) {
+  return *((size_t *)list_next(w->lines));
+}
 
 //  word_can_next_line: indique si l'uttilisation de word_next_line(w) est 
 //    autorisé sur w, si l'uttilisation de word_next_line(w) n'est pas autorisé,
@@ -89,34 +110,49 @@ extern size_t word_next_line(word *w);
 //    parceque la ligne courante est la dernière dans w
 //    Pour plus de clartée sur cette fonction, se référer à la fonction 
 //    list_can_next du module list comme spécifié dans l'entête de ce fichier.
-extern bool word_can_next_line(word *w);
+bool word_can_next_line(word *w) {
+  return list_can_next(w->lines);
+}
 
 //  word_rest_current_line: remet la ligne courante sur la première ligne
 //    Pour plus de clartée sur cette fonction, se référer à la fonction 
 //    list_reset_current du module list comme spécifié dans l'entête de ce 
 //    fichier.
-extern void word_reset_current_line(word w);
+void word_reset_current_line(word *w) {
+  list_reset_current(w->lines);
+}
 
-//  word_next_glossary: comportement comparable à word_next_line avec pour objet
+//  word_next_glosary: comportement comparable à word_next_line avec pour objet
 //    les lexiques en lieu et place des lignes et la fonction 
-//    word_can_next_glossary(w) en remplacement à word_can_next_line(w)
+//    word_can_next_glosary(w) en remplacement à word_can_next_line(w)
 //    Pour plus de clartée sur cette fonction, se référer à la fonction 
 //    list_next du module list comme spécifié dans l'entête de ce fichier.
-extern char *word_next_glossary(word *w);
+char *word_next_glosary(word *w) {
+  return (char*)list_next(w->glosaries);
+}
 
-//  word_can_next_glossary: comportement comparable à word_can_next_line avec
+//  word_can_next_glosary: comportement comparable à word_can_next_line avec
 //    pour objet les lexiques en lieu et place des lignes et la fonction 
-//    word_next_glossary(w) en remplacement à word_next_line(w)
+//    word_next_glosary(w) en remplacement à word_next_line(w)
 //    Pour plus de clartée sur cette fonction, se référer à la fonction 
 //    list_can_next du module list comme spécifié dans l'entête de ce fichier.
-extern bool word_can_next_glossary(word *w);
+bool word_can_next_glosary(word *w) {
+  return list_can_next(w->glosaries);
+}
 
-//  word_rest_current_glossary: remet la ligne courante sur la premièr lexique
+//  word_rest_current_glosary: remet la ligne courante sur la premièr lexique
 //    Pour plus de clartée sur cette fonction, se référer à la fonction 
 //    list_reset_current du module list comme spécifié dans l'entête de ce 
 //    fichier.
-extern void word_reset_current_glossary(word w);
+void word_reset_current_glosary(word *w) {
+  list_reset_current(w->glosaries);
+}
 
 //  word_dispose: libère toutes les ressources associés à la structure de *w 
 //    puis affecte à *w la valeur NULL
-extern void word_dispose(word **w);
+void word_dispose(word **w) {
+  list_dispose(&((*w)->glosaries));
+  list_dispose(&((*w)->lines));
+  free(w);
+  *w = NULL;
+}

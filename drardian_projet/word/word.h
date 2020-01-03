@@ -29,7 +29,7 @@ typedef struct word word;
 //    prèsque immédiatement de l'inteface list.h à ceci près que ces fonction
 //    ont été ôté de leur caractère polymorphe pour une uttilisation simplifiée:
 //    word_next_line, word_can_next_line, word_reset_current_line,
-//    word_next_glossary, word_can_next_glossary, word_reset_current_glossary 
+//    word_next_glosary, word_can_next_glosary, word_reset_current_glosary 
 
 //  word_create: crée une structure de donnée correspondant un mot ayant pour
 //    nom la chaine de caractères représenté par value et renvois son adresse ou
@@ -41,19 +41,19 @@ extern word *word_create(char *value);
 //    cas de dépassement de capacité
 extern bool word_add_line(word *w, size_t line);
 
-//  word_add_glossary: ajoute aux lexiques dans lesquels le mot w apparait,
-//    le lexique représenté par la chaine de caratère glossary et renvois true
+//  word_add_glosary: ajoute aux lexiques dans lesquels le mot w apparait,
+//    le lexique représenté par la chaine de caratère glosary et renvois true
 //    en cas de succès, false en cas de débordement de capacité
 //  Il est bon à noter qu'aucun test n'est fait sur la chaine de caractère 
-//    glossary, aussi est il possible d'ajouter NULL au mot word. Cela étant
+//    glosary, aussi est il possible d'ajouter NULL au mot word. Cela étant
 //    due aux module list uttilisé, et souhaitant une performance optimale,
 //    dans ce cas-ci, la fonction renverra false et il ne sera pas possible de
 //    différencier un débordement de capacitée d'une execution normale autrement
 //    qu'en vérifiant manuellement la fin des lexiques a l'aide des fonctions 
 //    word_next_line et word_can_next_line, pour vérifier que NULL y est bien 
 //    présent. Pour cette raison, il est fortement déconseillé de passer NULL 
-//    comme valeure associée à la chaine de caractère glossary
-extern bool word_add_glossary(word *w, char *glossary);
+//    comme valeure associée à la chaine de caractère glosary
+extern bool word_add_glosary(word *w, const char *glosary);
 
 //  word_next_line: renvois la ligne courante de w et passe à la suivante.
 //    Cette fonction doit être éxécutée seulement si word_can_next_line(w) a
@@ -76,27 +76,27 @@ extern bool word_can_next_line(word *w);
 //    Pour plus de clartée sur cette fonction, se référer à la fonction 
 //    list_reset_current du module list comme spécifié dans l'entête de ce 
 //    fichier.
-extern void word_reset_current_line(word w);
+extern void word_reset_current_line(word *w);
 
-//  word_next_glossary: comportement comparable à word_next_line avec pour objet
+//  word_next_glosary: comportement comparable à word_next_line avec pour objet
 //    les lexiques en lieu et place des lignes et la fonction 
-//    word_can_next_glossary(w) en remplacement à word_can_next_line(w)
+//    word_can_next_glosary(w) en remplacement à word_can_next_line(w)
 //    Pour plus de clartée sur cette fonction, se référer à la fonction 
 //    list_next du module list comme spécifié dans l'entête de ce fichier.
-extern char *word_next_glossary(word *w);
+extern char *word_next_glosary(word *w);
 
-//  word_can_next_glossary: comportement comparable à word_can_next_line avec
+//  word_can_next_glosary: comportement comparable à word_can_next_line avec
 //    pour objet les lexiques en lieu et place des lignes et la fonction 
-//    word_next_glossary(w) en remplacement à word_next_line(w)
+//    word_next_glosary(w) en remplacement à word_next_line(w)
 //    Pour plus de clartée sur cette fonction, se référer à la fonction 
 //    list_can_next du module list comme spécifié dans l'entête de ce fichier.
-extern bool word_can_next_glossary(word *w);
+extern bool word_can_next_glosary(word *w);
 
-//  word_rest_current_glossary: remet la ligne courante sur la premièr lexique
+//  word_rest_current_glosary: remet la ligne courante sur la premièr lexique
 //    Pour plus de clartée sur cette fonction, se référer à la fonction 
 //    list_reset_current du module list comme spécifié dans l'entête de ce 
 //    fichier.
-extern void word_reset_current_glossary(word w);
+extern void word_reset_current_glosary(word *w);
 
 //  word_dispose: libère toutes les ressources associés à la structure de *w 
 //    puis affecte à *w la valeur NULL
