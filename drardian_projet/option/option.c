@@ -8,11 +8,13 @@
 #define FUN_FAILURE -1
 #define FUN_SUCCESS 0
 
+#define OPT_FILE_GLOSARY "-"
+
 #define OPT_LONG "--"
 #define OPT_LONG_HELP OPT_LONG "help"
 #define OPT_LONG_SORT OPT_LONG "sort"
 #define OPT_LONG_CASE OPT_LONG "case"
-#define OPT_LONG_INPUT_ANONYM OPT_LONG "input"
+#define OPT_LONG_INPUT OPT_LONG "input"
 #define OPT_LONG_OUTPUT OPT_LONG "output"
 
 #define ARG_EQUAL "="
@@ -27,7 +29,7 @@
 #define OPT_SHORT_AS_IS OPT_SHORT "s"
 #define OPT_SHORT_UPPER OPT_SHORT "u"
 #define OPT_SHORT_INPUT OPT_SHORT ""
-#define OPT_SHORT_INPUT_ANONYM OPT_SHORT "i"
+#define OPT_SHORT_INPUT OPT_SHORT "i"
 #define OPT_SHORT_OUPUT OPT_SHORT "o"
 
 
@@ -58,23 +60,28 @@ int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
   outputFileNamesList = list_empty();
 
 // OPTIONS:
+  bool isWaitingForFile = false;
   bool isWaitingForInputFile = false;
   bool isWaitingForOutputFile = false;
   
   for (int k = 1; k <= argc; ++k) {
+    if (isWaitingForFile) {
+      if (!validFile(argv[k])) {
+        return FUN_FAILURE;
+      }
+      list_put(inputFileNamesList, argv[k]);
+    }
     if (isWaitingForInputFile) {
       if (!validFile(argv[k])) {
         return FUN_FAILURE;
       }
       list_put(inputFileNamesList, argv[k]);
-      continue;
     }
     if (isWaitingForOutputFile) {
       if (!validFile(argv[k])) {
         return FUN_FAILURE;
       }
       list_put(outputFileNamesList, argv[k]);
-      continue;
     }
     if (strcmp(argv[k], OPT_LONG_HELP) == 0) {
       help();
@@ -106,6 +113,9 @@ int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
     }
     if (strcmp(OPT_SHORT_UPPER, argv[k]) {
       upperCase = true;
+    }
+    if (strcmp(OPT_FILE_GLOSARY, argv[k]) {
+      isWaitingForFile = true;
     }
     if (strcmp(OPT_SHORT_INPUT OPT_SHORT, argv[k]) {
       isWaitingForInputFile = true;
@@ -149,5 +159,3 @@ bool validFile(char * filename) {
   fclose(f);
   return true;
 }
-
-
