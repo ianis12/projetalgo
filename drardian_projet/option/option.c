@@ -28,7 +28,6 @@
 #define OPT_SHORT_LOWER OPT_SHORT "l"
 #define OPT_SHORT_AS_IS OPT_SHORT "s"
 #define OPT_SHORT_UPPER OPT_SHORT "u"
-#define OPT_SHORT_INPUT OPT_SHORT ""
 #define OPT_SHORT_INPUT OPT_SHORT "i"
 #define OPT_SHORT_OUPUT OPT_SHORT "o"
 
@@ -56,20 +55,21 @@ int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
   *lowerCase = false;
   *upperCase = false;
   *asIsCase = false;
+  glosaryFileNamesList = list_empty();
   inputFileNamesList = list_empty();
   outputFileNamesList = list_empty();
 
 // OPTIONS:
-  bool isWaitingForFile = false;
+  bool isWaitingForGlosaryFile = false;
   bool isWaitingForInputFile = false;
   bool isWaitingForOutputFile = false;
   
   for (int k = 1; k <= argc; ++k) {
-    if (isWaitingForFile) {
+    if (isWaitingForGlosaryFile) {
       if (!validFile(argv[k])) {
         return FUN_FAILURE;
       }
-      list_put(inputFileNamesList, argv[k]);
+      list_put(glosaryFileNamesList, argv[k]);
     }
     if (isWaitingForInputFile) {
       if (!validFile(argv[k])) {
