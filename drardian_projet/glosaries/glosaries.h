@@ -4,7 +4,6 @@
 #ifndef GLOSARIES__H
 #define GLOSARIES__H
 
-#include <stddef.h>
 #include <stdbool.h>
 
 // struct glosaries, glosaries: 
@@ -21,8 +20,8 @@ typedef struct glosaries glosaries;
 extern glosaries glosaries_empty();
 
 // list_put: insère l'élément xptr en queue de la liste associée à l, renvoies
-//    NULL si xptr vaut NULL ou en cas de dépassement de capacitée, renvois xptr
-//    sinon
+//    NULL si xptr vaut NULL ou en cas de dépassement de capacitée, renvois 
+//    xptr sinon
 extern const void *glosaries_add(glosaries *g, word *w, const void *xptr);
 
 // glosaries_informations: retourne les informations lié à notre 
@@ -31,8 +30,8 @@ extern const void *glosaries_add(glosaries *g, word *w, const void *xptr);
 extern char* glosaries_informations(glosaries *g);
 
 // glosaries_load_file: charge un fichier lexique. Si notre paramètre de type
-//    FILE* est NULL alors la fonction aura un comportement indeterminé.
-extern int glosaries_load_file(glosaries *g, FILE *f);
+//    FILE* est NULL alors la fonction renverra false sinon renvoie true.
+extern bool glosaries_load_file(glosaries *g, FILE *f);
 
 // glosaries_dispose: libère toutes les ressources associés à la structure 
 //    de *g puis affecte à *g la valeur NULL
