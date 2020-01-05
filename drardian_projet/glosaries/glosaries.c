@@ -5,9 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "glosaries.h"
-#include "../hashtable/hashtable.h"
-#include "../holdall/holdall.h"
-#include "../list/list.h"
+#include "hashtable.h"
+#include "holdall.h"
+#include "list.h"
 
 #define WORD_LENGTH_MAX 63
 

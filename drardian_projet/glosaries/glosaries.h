@@ -6,7 +6,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
-#include "../word/word.h"
+#include "word.h"
 
 // struct glosaries, glosaries: 
 

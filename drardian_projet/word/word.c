@@ -4,7 +4,7 @@
 //    texte non spécifié ici.
 
 #include <stdlib.h>
-#include "../list/list.h"
+#include "list.h"
 #include "word.h"
 
 //  struct word, word: structure permettant de gérer un mot

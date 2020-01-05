@@ -3,12 +3,12 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
-#include "hashtable.h"
-#include "holdall.h"
+//#include "hashtable.h"
+//#include "holdall.h"
 #include "list.h"
 #include "option.h"
-#include "word.h"
-#include "glosaries.h"
+//#include "word.h"
+//#include "glosaries.h"
 
 #define WORD_LENGTH_MAX 63
 
@@ -21,24 +21,22 @@
 #define PRINT_ERR(format, ...)  PRINT__STDERR("Error", format, __VA_ARGS__)
 #define PRINT_WRN(format, ...)  PRINT__STDERR("Warning", format, __VA_ARGS__)
 
-void fileTreatment(FILE *tabFileInput, FILE *tabFileOutput);
+//void fileTreatment(FILE *tabFileInput, FILE *tabFileOutput);
 
 int main(int argc, char **argv) {
   bool sort;
   bool lowerCase;
   bool upperCase;
   bool asIsCase;
-  list inputFileNamesList;
-  list outputFileNamesList;
-  option(argc, argv, &sort, &lowerCase, &upperCase,
-      &asIsCase, &inputFileNamesList, &outputFileNamesList, &undefinedGlosary);
-  FILE *tabFileInput[list_size(inputFileNamesList)];
-  FILE *tabFileOutput[list_size(outputFileNamesList)];
-  fileTreatment(tabFileInput, tabFileOutput, inputGlosaries, outputGlosaries);
-  
-error:
+  char *inputFileName;
+  char *outputFileName;
+  list *glosariesFileNamesList;
+  glosariesFileNamesList = list_empty();
+  option(argc, argv, &sort, &lowerCase, &upperCase, &asIsCase, &inputFileName, 
+      &outputFileName, glosariesFileNamesList);
+  return EXIT_SUCCESS;
 }
-
+/*
 void fileTreatment(glosary *gl, FILE *tabFileOutput) {
   if (!list_is_empty(inputFileNamesList)) {
     size_t id = 0;
@@ -64,3 +62,4 @@ void fileTreatment(glosary *gl, FILE *tabFileOutput) {
     list_reset_current(outputFileNamesList);
   }
 }
+*/

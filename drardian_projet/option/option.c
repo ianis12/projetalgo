@@ -2,34 +2,38 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#include "../list/list.h"
+#include "list.h"
 #include "option.h"
 
 #define FUN_FAILURE -1
 #define FUN_SUCCESS 0
 
-#define OPT_FILE_GLOSARY "-"
-
-#define OPT_LONG "--"
-#define OPT_LONG_HELP OPT_LONG "help"
-#define OPT_LONG_SORT OPT_LONG "sort"
-#define OPT_LONG_CASE OPT_LONG "case"
-#define OPT_LONG_INPUT OPT_LONG "input"
-#define OPT_LONG_OUTPUT OPT_LONG "output"
-
-#define ARG_EQUAL "="
-
-#define ARG_CASE_LOWER "lower"
-#define ARG_CASE_AS_IS "as-is"
-#define ARG_CASE_UPPER "upper"
+#define WORD_LENGTH_MAX 63
 
 #define OPT_SHORT "-"
-#define OPT_SHORT_SORT OPT_SHORT "S"
-#define OPT_SHORT_LOWER OPT_SHORT "l"
-#define OPT_SHORT_AS_IS OPT_SHORT "s"
-#define OPT_SHORT_UPPER OPT_SHORT "u"
-#define OPT_SHORT_INPUT OPT_SHORT "i"
-#define OPT_SHORT_OUPUT OPT_SHORT "o"
+#define OPT_EQUAL "="
+#define OPT_LONG "--"
+#define OPT_CASE "case"
+#define OPT_LOWER "lower"
+#define OPT_AS_IS "as-is"
+#define OPT_UPPER "upper"
+
+#define ARG_LONG_HELP OPT_LONG "help"
+#define ARG_LONG_SORT OPT_LONG "sort"
+#define ARG_LONG_INPUT OPT_LONG "input"
+#define ARG_LONG_OUTPUT OPT_LONG "output"
+#define ARG_LONG_LOWER OPT_LONG OPT_CASE OPT_LOWER
+#define ARG_LONG_UPPER OPT_LONG OPT_CASE OPT_UPPER
+#define ARG_LONG_AS_IS OPT_LONG OPT_CASE OPT_AS_IS
+
+#define ARG_FILE_GLOSARY "-"
+
+#define ARG_SHORT_SORT OPT_SHORT "S"
+#define ARG_SHORT_LOWER OPT_SHORT "l"
+#define ARG_SHORT_AS_IS OPT_SHORT "s"
+#define ARG_SHORT_UPPER OPT_SHORT "u"
+#define ARG_SHORT_INPUT OPT_SHORT "i"
+#define ARG_SHORT_OUPUT OPT_SHORT "o"
 
 
 #define PRINT_MSG(format, ...)  \
@@ -44,118 +48,137 @@
 #define STR(s)  #s
 #define XSTR(s) STR(s)
 
-bool is_arg_correct(char * arg, char * value, int start);
+bool checkArgFile(const char * arg, const char * value, size_t* start);
 bool validFile(char * filename);
+void help();
 
 int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
-    bool* asIsCase, list* inputFileNamesList, list* outputFileNamesList) {
+    bool* asIsCase, char **inputFileName, char **outputFileName, 
+    list *glosaryFileNamesList) {
 // VALEURS PAR DEFAUT:
 
   *sort = false;
   *lowerCase = false;
   *upperCase = false;
   *asIsCase = false;
-  glosaryFileNamesList = list_empty();
-  inputFileNamesList = list_empty();
-  outputFileNamesList = list_empty();
+  size_t offsetFile = 0;
 
 // OPTIONS:
   bool isWaitingForGlosaryFile = false;
   bool isWaitingForInputFile = false;
   bool isWaitingForOutputFile = false;
   
-  for (int k = 1; k <= argc; ++k) {
-    if (isWaitingForGlosaryFile) {
-      if (!validFile(argv[k])) {
-        return FUN_FAILURE;
-      }
-      list_put(glosaryFileNamesList, argv[k]);
-    }
+  for (int k = 1; k < argc; ++k) {
     if (isWaitingForInputFile) {
-      if (!validFile(argv[k])) {
-        return FUN_FAILURE;
-      }
-      list_put(inputFileNamesList, argv[k]);
+	  isWaitingForInputFile = false;
+	  if (validFile(argv[k])) {
+        *inputFileName = malloc(strlen(argv[k]));
+        strcpy(*inputFileName, argv[k]);
+	  } else {
+	    fprintf(stderr, "le fichier n'est pas valide\n");
+	    return FUN_FAILURE;
+	  }
+	  continue;
+	}
+	if (isWaitingForGlosaryFile) {
+	  isWaitingForGlosaryFile = false;
+	  if (validFile(argv[k])) {
+		char *fileName = malloc(strlen(argv[k]));
+        list_put(glosaryFileNamesList, fileName);
+	  } else {
+	    fprintf(stderr, "le fichier n'est pas valide\n");
+	    return FUN_FAILURE;
+	  }
+	  continue;
+	}
+	if (isWaitingForOutputFile) {
+	  isWaitingForOutputFile = false;
+	  if (validFile(argv[k])) {
+		  *outputFileName = malloc(strlen(argv[k]));
+		  strcpy(*outputFileName, argv[k]);
+	  } else {
+	    fprintf(stderr, "le fichier n'est pas valide\n");
+	    return FUN_FAILURE;
+	  }
+	  continue;
+	}
+    if (strcmp(ARG_LONG_SORT, argv[k]) == 0
+        || strcmp(ARG_SHORT_SORT, argv[k]) == 0) {
+      *sort = true;
+      continue;
     }
-    if (isWaitingForOutputFile) {
-      if (!validFile(argv[k])) {
-        return FUN_FAILURE;
-      }
-      list_put(outputFileNamesList, argv[k]);
-    }
-    if (strcmp(argv[k], OPT_LONG_HELP) == 0) {
+    if (strcmp(ARG_LONG_HELP, argv[k]) == 0) {
       help();
+      continue;
     }
-    if (strcmp(argv[k], OPT_LONG_SORT) == 0
-        || strcmp(argv[k], OPT_SHORT_SORT) == 0) {
-      sort = true;
+    if (strcmp(ARG_LONG_AS_IS, argv[k]) == 0
+	    || strcmp(ARG_SHORT_AS_IS, argv[k]) == 0) {
+	  *asIsCase = true;
+	  continue;
+	}
+	if (strcmp(ARG_LONG_LOWER, argv[k]) == 0
+	    || strcmp(ARG_SHORT_LOWER, argv[k]) == 0) {
+	  *lowerCase = true;
+	  continue;
+	}
+	if (strcmp(ARG_LONG_UPPER, argv[k]) == 0
+	    || strcmp(ARG_SHORT_UPPER, argv[k]) == 0) {
+	  *upperCase = true;
+	  continue;
+	}
+	if (checkArgFile(argv[k], ARG_LONG_INPUT, &offsetFile)) {
+	  if (validFile(argv[k] + offsetFile)) {
+	    strcpy(*inputFileName, argv[k] + offsetFile);
+	  } else {
+	    fprintf(stderr, "le fichier n'est pas valide\n");
+	    return FUN_FAILURE;
+	  }
     }
-    if (is_arg_correct(OPT_LONG_CASE ARG_EQUAL, argv[k], 0) {
-      if (is_arg_correct(ARG_CASE_LOWER, argv[k],
-          strlen(OPT_LONG_CASE ARG_EQUAL)) {
-        lowerCase = true;
-      }
-      if (is_arg_correct(ARG_CASE_AS_IS, argv[k],
-          strlen(OPT_LONG_CASE ARG_EQUAL)) {
-        asIsCase = true;
-      }
-      if (is_arg_correct(ARG_CASE_UPPER, argv[k],
-          strlen(OPT_LONG_CASE ARG_EQUAL)) {
-        upperCase = true;
-      }
-      goto error;
+    if (checkArgFile(argv[k], ARG_LONG_OUTPUT, &offsetFile)) {
+	  if (validFile(argv[k] + offsetFile)) {
+	    strcpy(*outputFileName, argv[k] + offsetFile);
+	  } else {
+	    fprintf(stderr, "le fichier n'est pas valide\n");
+	    return FUN_FAILURE;
+	  }
     }
-    if (strcmp(OPT_SHORT_LOWER, argv[k]) {
-      lowerCase = true;
-    }
-    if (strcmp(OPT_SHORT_AS_IS, argv[k]) {
-      asIsCase = true;
-    }
-    if (strcmp(OPT_SHORT_UPPER, argv[k]) {
-      upperCase = true;
-    }
-    if (strcmp(OPT_FILE_GLOSARY, argv[k]) {
-      isWaitingForFile = true;
-    }
-    if (strcmp(OPT_SHORT_INPUT OPT_SHORT, argv[k]) {
+    if (strcmp(ARG_SHORT_INPUT, argv[k]) == 0) {
       isWaitingForInputFile = true;
     }
-    if (strcmp(OPT_SHORT_OUTPUT OPT_SHORT, argv[k]) {
-      isWaitingForOuputFile = true;
-    }
-    if (is_arg_correct(OPT_LONG_CASE ARG_EQUAL, argv[k], 0) {
-      if (is_arg_correct(ARG_CASE_LOWER, argv[k],
-          strlen(OPT_LONG_CASE ARG_EQUAL)) {
-        caseLowerEnable = true;
-      }
-      if (is_arg_correct(ARG_CASE_AS_IS, argv[k],
-        strlen(OPT_LONG_CASE ARG_EQUAL)) {
-        caseAsIsEnable = true;
-      }
-      return FUN_FAILURE;
-    }
+    if (strcmp(ARG_SHORT_OUPUT, argv[k]) == 0) {
+	  isWaitingForOutputFile = true;
+	}
+	if (strcmp(ARG_FILE_GLOSARY, argv[k]) == 0) {
+	  isWaitingForGlosaryFile = true;
+	}
   }
+  return FUN_SUCCESS;
 }
 
-bool is_arg_correct(char * arg, char * value, int start){
-  int k = start;
-  while (arg[k] != '\0' && value[k] != '\0') {
-    if (arg[k] != value[k]) {
+
+bool checkArgFile(const char* arg, const char * value, size_t* k){
+  *k = 0;
+  while (arg[*k] != '\0' && value[*k] != '\0') {
+    if (arg[*k] != value[*k]) {
       return false;
     }
-    if (k == strlen(arg) - 1) {
+    if (*k == strlen(value) - 1) {
       return true;
     }
-    ++k;
+    ++(*k);
   }
   return false;
 }
 
 bool validFile(char * filename) {
-  FILE* f = fopen(filename, "r+");
+  FILE* f = fopen(filename, "rw");
   if (f == NULL) {
     return false;
   }
   fclose(f);
   return true;
+}
+
+void help() {
+	printf("bonjour");
 }
