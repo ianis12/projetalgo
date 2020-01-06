@@ -26,10 +26,12 @@ extern glosaries *glosaries_empty(void);
 //    xptr sinon
 extern bool glosaries_add(glosaries *g, const char *str, size_t line);
 
+extern bool glosaries_add_glosary_to_word(glosaries *g, char *str, char *gl);
+
 // glosaries_informations: retourne les informations lié à notre 
 //    glosaries tel que sa présence dans les différents lexiques
 //    ainsi que son numéro de ligne dans notre texte.    
-extern bool glosaries_informations(glosaries *g, FILE* f);
+extern bool glosaries_display(glosaries *g, FILE* f);
 
 // glosaries_load_file: charge un fichier lexique. Si notre paramètre de type
 //    FILE* est NULL alors la fonction renverra false sinon renvoie true.

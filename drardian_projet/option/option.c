@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <ctype.h>
 #include "list.h"
 #include "option.h"
 
@@ -48,13 +49,14 @@
 #define STR(s)  #s
 #define XSTR(s) STR(s)
 
-bool checkArgFile(const char * arg, const char * value, size_t* start);
-bool validFile(char * filename);
+static bool checkArgFile(const char * arg, const char * value, size_t* start);
+static bool validFile(char * filename);
+static void addCorrectsWords(list *anonymGlosaryWords, char *arg);
 void help();
 
 int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
     bool* asIsCase, char **inputFileName, char **outputFileName, 
-    list *glosaryFileNamesList) {
+    list *glosaryFileNamesList, list *anonymGlosaryWords) {
 // VALEURS PAR DEFAUT:
 
   *sort = false;
@@ -72,6 +74,7 @@ int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
     if (isWaitingForInputFile) {
 	  isWaitingForInputFile = false;
 	  if (validFile(argv[k])) {
+		free(*inputFileName);
         *inputFileName = malloc(strlen(argv[k]));
         strcpy(*inputFileName, argv[k]);
 	  } else {
@@ -83,6 +86,7 @@ int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
 	if (isWaitingForGlosaryFile) {
 	  isWaitingForGlosaryFile = false;
 	  if (validFile(argv[k])) {
+		free(*outputFileName);
 		char *fileName = malloc(strlen(argv[k]));
         list_put(glosaryFileNamesList, fileName);
 	  } else {
@@ -94,8 +98,8 @@ int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
 	if (isWaitingForOutputFile) {
 	  isWaitingForOutputFile = false;
 	  if (validFile(argv[k])) {
-		  *outputFileName = malloc(strlen(argv[k]));
-		  strcpy(*outputFileName, argv[k]);
+	    *outputFileName = malloc(strlen(argv[k]));
+	    strcpy(*outputFileName, argv[k]);
 	  } else {
 	    fprintf(stderr, "le fichier n'est pas valide\n");
 	    return FUN_FAILURE;
@@ -133,6 +137,7 @@ int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
 	    fprintf(stderr, "le fichier n'est pas valide\n");
 	    return FUN_FAILURE;
 	  }
+	  continue;
     }
     if (checkArgFile(argv[k], ARG_LONG_OUTPUT, &offsetFile)) {
 	  if (validFile(argv[k] + offsetFile)) {
@@ -141,16 +146,23 @@ int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
 	    fprintf(stderr, "le fichier n'est pas valide\n");
 	    return FUN_FAILURE;
 	  }
+	  continue;
     }
     if (strcmp(ARG_SHORT_INPUT, argv[k]) == 0) {
       isWaitingForInputFile = true;
+	  continue;
     }
     if (strcmp(ARG_SHORT_OUPUT, argv[k]) == 0) {
 	  isWaitingForOutputFile = true;
+	  continue;
 	}
 	if (strcmp(ARG_FILE_GLOSARY, argv[k]) == 0) {
 	  isWaitingForGlosaryFile = true;
+	  continue;
 	}
+	//Si aucun test n'est passé, on essaye de nous faire passer un nouveau mot
+	//pour le lexique anonyme
+	addCorrectsWords(anonymGlosaryWords, argv[k]);
   }
   return FUN_SUCCESS;
 }
@@ -168,6 +180,36 @@ bool checkArgFile(const char* arg, const char * value, size_t* k){
     ++(*k);
   }
   return false;
+}
+
+void addCorrectsWords(list *anonymGlosaryWords, char *arg) {
+  size_t k = 0;
+  size_t index = 0;
+  char w[WORD_LENGTH_MAX];
+  w[0] = '\0';
+  while (arg[k] != '\0') {
+    if (ispunct(arg[k]) || isspace(arg[k])) {
+	  if (index != 0) {
+	    char *t = malloc(index);
+	    w[index] = '\0';
+	    strcpy(t, w);
+  	    list_put(anonymGlosaryWords, t);
+	    index = 0;
+	  }
+	} else {
+		if (index < WORD_LENGTH_MAX) {
+		  w[index] = arg[k];
+	      ++index;
+		}
+	}
+	++k;
+  }
+  if (index != 0) {
+	char *t = malloc(index);
+	w[index] = '\0';
+	strcpy(t, w);
+  	list_put(anonymGlosaryWords, t);
+  }
 }
 
 bool validFile(char * filename) {

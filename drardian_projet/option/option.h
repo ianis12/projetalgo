@@ -21,6 +21,7 @@
 
 extern int option(int argc, char** argv, bool* sort, bool* lowerCase,
     bool* upperCase, bool* asIsCase, char **inputFileName, 
-    char **outputFileName, list *glosaryFileNamesList);
+    char **outputFileName, list *glosaryFileNamesList,
+    list *anonymGlosaryWords);
     
 #endif

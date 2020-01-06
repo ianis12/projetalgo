@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "list.h"
 #include "word.h"
+#include <stdio.h>
 
 //  struct word, word: structure permettant de gérer un mot
 //  L'utilisateur doit garantir que l'adresse de chaque objet fournie aux

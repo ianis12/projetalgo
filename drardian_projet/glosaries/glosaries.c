@@ -47,7 +47,6 @@ static size_t str_hashfun(const char *w);
 static int str__holdall_dispose_fun(char * str);
 static int word__holdall_dispose_fun(word *str);
 
-static bool glosaries__add_glosary_to_word(glosaries *g, char *w, char *gl);
 static struct word_file_list *hashtable_file_value(
     struct hashtable_file_list *ht_f, char *str);
 static int word_file_display(char *cptr, struct word_file_list *w_f);
@@ -141,7 +140,7 @@ bool glosaries_display(glosaries *g, FILE *f) {
 bool glosaries_load_file(glosaries *g, FILE *f, char *gl) {
   char w[WORD_LENGTH_MAX];
   while (fscanf(f, "%" XSTR(WORD_LENGTH_MAX) "s", w) != EOF) {
-    if (!glosaries__add_glosary_to_word(g, w, gl)) {
+    if (!glosaries_add_glosary_to_word(g, w, gl)) {
       return false;
     }
   }
@@ -186,13 +185,11 @@ char *glosaries_add_glosary(glosaries *g, char *gl) {
   }
   list_reset_current(g->l_gl);
   if (!exist) {
-    size_t len_str = strlen(gl) + 1;
-    char *str = malloc((len_str > WORD_LENGTH_MAX 
-        ? WORD_LENGTH_MAX : len_str));
+    char *str = malloc(strlen(gl));
     if (str == NULL) {
       return NULL;
     }
-    strncpy(str, gl, WORD_LENGTH_MAX);
+    strcpy(str, gl);
     list_put(g->l_gl, str);
     holdall_put(g->ha_gl, str);
     return str;
@@ -205,16 +202,23 @@ char *glosaries_add_glosary(glosaries *g, char *gl) {
 //  glosaries__add_glosary_to_word: permet l'ajout du lexique gl a un mot créé
 //    à partir de str si il n'existe pas déjà, la fonction gère elle même la 
 //    mémoire uttilisée pour la création du lexique et du mot. 
-//    cette fonction à un comportement indéterminé si le lexique était déja
+//    cette fonction a un comportement indéterminé si le lexique était déja
 //    ajouté au mot
-bool glosaries__add_glosary_to_word(glosaries *g, char *str, char *gl) {
+bool glosaries_add_glosary_to_word(glosaries *g, char *str, char *gl) {
   word *w = (word *) hashtable_value(g->ht, str);
+  
   if (w == NULL) {
-    word *w = word_create();
+    w = word_create();
     if (w == NULL) {
       return false;
     }
     holdall_put(g->ha_word, w);
+    char *strb = malloc(strlen(str));
+    if (strb == NULL) {
+	  return false;
+	}
+    strcpy(strb, str);
+    hashtable_add(g->ht, strb, w);
   }
   char *glptr = glosaries_add_glosary(g, gl);
   if (glptr == NULL) {
@@ -265,7 +269,7 @@ int word_file_display(char *cptr, struct word_file_list *w_f_l) {
     while (wtmp != list_next(l)) {
       fprintf(f, "\t");
 	}
-    fprintf(f, "%s", wtmp);
+    fprintf(f, "x");
     fprintf(f, "\t");
   }
   word_reset_current_glosary(w);

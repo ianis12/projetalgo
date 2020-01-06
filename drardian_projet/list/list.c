@@ -125,7 +125,8 @@ void list_dispose(list **l) {
 		(*l)->head = (*l)->head->next;
 		free(cptr);
 		list_dispose(l);
+	} else {
+	  free(*l);
+	  *l = NULL;
 	}
-	free(l);
-	*l = NULL;
 }
