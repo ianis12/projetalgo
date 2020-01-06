@@ -155,10 +155,14 @@ bool glosaries_load_file(glosaries *g, FILE *f, char *gl) {
 // glosaries_dispose: libère toutes les ressources associés à la structure 
 //    de *g puis affecte à *g la valeur NULL
 void glosaries_dispose(glosaries **g) {
+  hashtable_dispose(&(*g)->ht);
   holdall_apply((*g)->ha_word, (int (*)(void *)) word__holdall_dispose_fun);
   holdall_apply((*g)->ha_gl, (int (*)(void *)) str__holdall_dispose_fun);
   holdall_apply((*g)->ha_str, (int (*)(void *)) str__holdall_dispose_fun);
   list_dispose(&(*g)->l_gl);
+  holdall_dispose(&(*g)->ha_word);
+  holdall_dispose(&(*g)->ha_gl);
+  holdall_dispose(&(*g)->ha_str);
   free(*g);
   *g = NULL;
 }
@@ -217,6 +221,7 @@ bool glosaries_add_glosary_to_word(glosaries *g, char *str, char *gl) {
     if (strb == NULL) {
 	  return false;
 	}
+	holdall_put(g->ha_str, strb);
     strcpy(strb, str);
     hashtable_add(g->ht, strb, w);
   }
@@ -231,6 +236,7 @@ bool glosaries_add_glosary_to_word(glosaries *g, char *str, char *gl) {
 }
 
 int str__holdall_dispose_fun(char *str) {
+  printf(" free str\n");
   free(str);
   return 0;
 }

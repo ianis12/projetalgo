@@ -8,7 +8,7 @@
 #include "glosaries.h"
 
 #define WORD_LENGTH_MAX 63
-#define ANONYM_GL ""
+#define ANONYM_GL "anonym"
 
 #define PRINT_MSG(format, ...)  \
   printf("--- " format "\n", __VA_ARGS__)
@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
   
   FILE *input;
   if (inputFileName != NULL) {
-    input = fopen(inputFileName, "r");  
+    input = fopen(inputFileName, "r");
     free(inputFileName);
   } else {
 	input = stdin;
@@ -76,14 +76,16 @@ int main(int argc, char **argv) {
     free(fileStr);
   }
   
-  FILE *output;
+  //FILE *output;
   if (outputFileName == NULL) {
-    output = stdout;
+  //  output = stdout;
   } else {
-    output = fopen(outputFileName, "w");
+  //  output = fopen(outputFileName, "w");
+    printf("free str\n");
+    free(outputFileName);
   }
   
-  glosaries_display(gl, output);
+  //glosaries_display(gl, output);
   
   goto dispose;
 error_capacity:

@@ -75,6 +75,7 @@ int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
 	  isWaitingForInputFile = false;
 	  if (validFile(argv[k])) {
 		free(*inputFileName);
+        printf("create str\n");
         *inputFileName = malloc(strlen(argv[k]));
         strcpy(*inputFileName, argv[k]);
 	  } else {
@@ -87,6 +88,7 @@ int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
 	  isWaitingForGlosaryFile = false;
 	  if (validFile(argv[k])) {
 		free(*outputFileName);
+        printf("create str\n");
 		char *fileName = malloc(strlen(argv[k]));
         list_put(glosaryFileNamesList, fileName);
 	  } else {
@@ -98,6 +100,8 @@ int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
 	if (isWaitingForOutputFile) {
 	  isWaitingForOutputFile = false;
 	  if (validFile(argv[k])) {
+		free(*outputFileName);
+        printf("create str\n");
 	    *outputFileName = malloc(strlen(argv[k]));
 	    strcpy(*outputFileName, argv[k]);
 	  } else {
@@ -190,6 +194,7 @@ void addCorrectsWords(list *anonymGlosaryWords, char *arg) {
   while (arg[k] != '\0') {
     if (ispunct(arg[k]) || isspace(arg[k])) {
 	  if (index != 0) {
+        printf("create str\n");
 	    char *t = malloc(index);
 	    w[index] = '\0';
 	    strcpy(t, w);

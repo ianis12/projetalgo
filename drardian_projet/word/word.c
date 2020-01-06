@@ -149,8 +149,13 @@ void word_reset_current_glosary(word *w) {
 //  word_dispose: libère toutes les ressources associés à la structure de *w 
 //    puis affecte à *w la valeur NULL
 void word_dispose(word **w) {
+  list_reset_current((*w)->lines);
+  while (list_can_next((*w)->lines)) {
+    size_t *ptr = (size_t *) list_next((*w)->lines);
+    free(ptr);
+  }
   list_dispose(&(*w)->glosaries);
   list_dispose(&(*w)->lines);
-  free(w);
+  free(*w);
   *w = NULL;
 }
