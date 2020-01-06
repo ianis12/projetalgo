@@ -236,7 +236,6 @@ bool glosaries_add_glosary_to_word(glosaries *g, char *str, char *gl) {
 }
 
 int str__holdall_dispose_fun(char *str) {
-  printf(" free str\n");
   free(str);
   return 0;
 }
