@@ -31,10 +31,10 @@ clean:
 $(executable): $(objects)
 	$(CC) $(objects) $(LDFLAGS) -o $(executable)
 
-$(glosariesdir)glosaries.o: $(glosariesdir)glosaries.c $(glosariesdir)glosaries.h
-$(hashtabledir)hashtable.o: $(hashtabledir)hashtable.c $(hashtabledir)hashtable.h
-$(holdalldir)holdall.o: $(holdalldir)holdall.c $(holdalldir)holdall.h
-$(listdir)list.o: $(listdir)list.c $(listdir)list.h
-$(optiondir)option.o: $(optiondir)option.c $(optiondir)option.h
-$(worddir)word.o: $(worddir)word.c $(worddir)word.h
+$(glosariesdir)glosaries.o: glosaries.c glosaries.h
+$(hashtabledir)hashtable.o: hashtable.c hashtable.h
+$(holdalldir)holdall.o: holdall.c holdall.h
+$(listdir)list.o: list.c list.h
+$(optiondir)option.o: option.c option.h
+$(worddir)word.o: word.c word.h
 main.o: main.c glosaries.h list.h option.h
