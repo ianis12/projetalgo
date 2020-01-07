@@ -8,7 +8,7 @@
 #include "glosaries.h"
 
 #define WORD_LENGTH_MAX 63
-#define ANONYM_GL "anonym"
+#define ANONYM_GL ""
 
 #define PRINT_MSG(format, ...)  \
   printf("--- " format "\n", __VA_ARGS__)
@@ -19,19 +19,17 @@
 #define PRINT_ERR(format, ...)  PRINT__STDERR("Error", format, __VA_ARGS__)
 #define PRINT_WRN(format, ...)  PRINT__STDERR("Warning", format, __VA_ARGS__)
 
-#define STR(s)  #s
+#define STR(s) #s
 #define XSTR(s) STR(s)
 
-//void fileTreatment(FILE *tabFileInput, FILE *tabFileOutput);
-
 int main(int argc, char **argv) {
+  //initialiser les variables
   bool error;
   bool sort;
   bool lowerCase;
   bool upperCase;
-  bool asIsCase;
-  char *inputFileName;
-  char *outputFileName;
+  char *inputFileName = NULL;
+  char *outputFileName = NULL;
   list *glosariesFileNamesList;
   list *anonymGlosaryWordsList;
   glosariesFileNamesList = list_empty();
@@ -42,60 +40,50 @@ int main(int argc, char **argv) {
   if (anonymGlosaryWordsList == NULL) {
 	goto error_capacity;
   }
-  option(argc, argv, &sort, &lowerCase, &upperCase, &asIsCase, &inputFileName, 
+
+  //charger les options
+  option(argc, argv, &sort, &lowerCase, &upperCase, &inputFileName,
       &outputFileName, glosariesFileNamesList, anonymGlosaryWordsList);
+
   glosaries *gl = glosaries_empty();
   if (gl == NULL) {
 	  goto error_capacity;
   }
+
   // remplir le lexique anonyme:
   while (list_can_next(anonymGlosaryWordsList)) {
     char *str = (char *)list_next(anonymGlosaryWordsList);
-    char strb[WORD_LENGTH_MAX];
+    char strb[WORD_LENGTH_MAX + 1];
     strcpy(strb, str);
-    free(str);
-    glosaries_add_glosary_to_word(gl, strb, ANONYM_GL);
-  }
-  
-  FILE *input;
-  if (inputFileName != NULL) {
-    input = fopen(inputFileName, "r");
-    free(inputFileName);
-  } else {
-	input = stdin;
-  }
-  char strin[WORD_LENGTH_MAX];
-  while (fscanf(input, "%" XSTR(WORD_LENGTH_MAX) "s", strin) != EOF) {
-    glosaries_add_glosary_to_word(gl, strin, ANONYM_GL);
+    if (!glosaries_add_glosary_to_word(gl, strb, ANONYM_GL)) {
+	  goto error_capacity;
+    }
   }
   //charger les ficher lexiques
   while (list_can_next(glosariesFileNamesList)) {
-    char *fileStr = (char *)list_next(glosariesFileNamesList);
-    FILE *f = fopen(fileStr, "r");
-    glosaries_load_file(gl, f, fileStr);
-    free(fileStr);
+	char *fileStr = (char *)list_next(glosariesFileNamesList);
+    if (!glosaries_load_glosary_file(gl, fileStr, lowerCase, upperCase)) {
+      goto error_capacity;
+    }
   }
-  
-  //FILE *output;
-  if (outputFileName == NULL) {
-  //  output = stdout;
-  } else {
-  //  output = fopen(outputFileName, "w");
-    printf("free str\n");
-    free(outputFileName);
-  }
-  
-  //glosaries_display(gl, output);
-  
+  // récupérer l'entrée
+  glosaries_read_text(gl, inputFileName, lowerCase, upperCase);
+  // afficher les lexiques
+  glosaries_display(gl, outputFileName);
   goto dispose;
 error_capacity:
+  error = true;
+  goto _exit;
+dispose:
+  error = false;
+_exit:
   if (anonymGlosaryWordsList != NULL) {
 	list_reset_current(anonymGlosaryWordsList);
 	while (list_can_next(anonymGlosaryWordsList)) {
       char *str = (char *)list_next(anonymGlosaryWordsList);
 	  free(str);
 	}
-  }  
+  }
   if (glosariesFileNamesList != NULL) {
 	list_reset_current(glosariesFileNamesList);
 	while (list_can_next(glosariesFileNamesList)) {
@@ -105,11 +93,6 @@ error_capacity:
   }
   free(inputFileName);
   free(outputFileName);
-  error = true;
-  goto _exit;
-dispose:
-  error = false;
-_exit:
   glosaries_dispose(&gl);
   list_dispose(&anonymGlosaryWordsList);
   list_dispose(&glosariesFileNamesList);
@@ -118,30 +101,3 @@ _exit:
   }
   return EXIT_SUCCESS;
 }
-/*
-void fileTreatment(glosary *gl, FILE *tabFileOutput) {
-  if (!list_is_empty(inputFileNamesList)) {
-    size_t id = 0;
-    while (list_can_next(inputFileNamesList)) {
-      file = *((char **)list_next(inputFileNamesList));
-      FILE *inputFile = fopen(file, "r");
-      if (inputFile == NULL) {
-        return NULL;
-      }
-      glosaries_load_file(inputFile);
-      fclose(inputFile);
-      ++id;
-    }
-    list_reset_current(inputFileNamesListFileNamesList);
-  }
-  id = 0;
-  if (!list_is_empty(outputFileNamesList)) {
-    while (list_can_next(outputFileNamesList)) {
-      file = *((char **)list_next(outputFileNamesList));
-      tabFileOutput[id] = fopen(file, "r");
-      ++id;
-    }
-    list_reset_current(outputFileNamesList);
-  }
-}
-*/

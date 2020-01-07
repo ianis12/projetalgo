@@ -50,33 +50,32 @@
 #define XSTR(s) STR(s)
 
 static bool checkArgFile(const char * arg, const char * value, size_t* start);
-static bool validFile(char * filename);
+static bool validFileRead(char * filename);
+static bool validFileWrite(char * filename);
 static void addCorrectsWords(list *anonymGlosaryWords, char *arg);
 void help();
 
 int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
-    bool* asIsCase, char **inputFileName, char **outputFileName, 
+    char **inputFileName, char **outputFileName,
     list *glosaryFileNamesList, list *anonymGlosaryWords) {
 // VALEURS PAR DEFAUT:
 
   *sort = false;
   *lowerCase = false;
   *upperCase = false;
-  *asIsCase = false;
   size_t offsetFile = 0;
 
 // OPTIONS:
   bool isWaitingForGlosaryFile = false;
   bool isWaitingForInputFile = false;
   bool isWaitingForOutputFile = false;
-  
+
   for (int k = 1; k < argc; ++k) {
     if (isWaitingForInputFile) {
 	  isWaitingForInputFile = false;
-	  if (validFile(argv[k])) {
+	  if (validFileRead(argv[k])) {
 		free(*inputFileName);
-        printf("create str\n");
-        *inputFileName = malloc(strlen(argv[k]));
+        *inputFileName = malloc(strlen(argv[k]) + 1);
         strcpy(*inputFileName, argv[k]);
 	  } else {
 	    fprintf(stderr, "le fichier n'est pas valide\n");
@@ -86,10 +85,10 @@ int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
 	}
 	if (isWaitingForGlosaryFile) {
 	  isWaitingForGlosaryFile = false;
-	  if (validFile(argv[k])) {
+	  if (validFileRead(argv[k])) {
 		free(*outputFileName);
-        printf("create str\n");
-		char *fileName = malloc(strlen(argv[k]));
+		char *fileName = malloc(strlen(argv[k]) + 1);
+		strcpy(fileName, argv[k]);
         list_put(glosaryFileNamesList, fileName);
 	  } else {
 	    fprintf(stderr, "le fichier n'est pas valide\n");
@@ -99,10 +98,9 @@ int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
 	}
 	if (isWaitingForOutputFile) {
 	  isWaitingForOutputFile = false;
-	  if (validFile(argv[k])) {
+	  if (validFileWrite(argv[k])) {
 		free(*outputFileName);
-        printf("create str\n");
-	    *outputFileName = malloc(strlen(argv[k]));
+	    *outputFileName = malloc(strlen(argv[k]) + 1);
 	    strcpy(*outputFileName, argv[k]);
 	  } else {
 	    fprintf(stderr, "le fichier n'est pas valide\n");
@@ -121,21 +119,26 @@ int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
     }
     if (strcmp(ARG_LONG_AS_IS, argv[k]) == 0
 	    || strcmp(ARG_SHORT_AS_IS, argv[k]) == 0) {
-	  *asIsCase = true;
+	  *upperCase = false;
+	  *lowerCase = false;
 	  continue;
 	}
 	if (strcmp(ARG_LONG_LOWER, argv[k]) == 0
 	    || strcmp(ARG_SHORT_LOWER, argv[k]) == 0) {
 	  *lowerCase = true;
+	  *upperCase = false;
 	  continue;
 	}
 	if (strcmp(ARG_LONG_UPPER, argv[k]) == 0
 	    || strcmp(ARG_SHORT_UPPER, argv[k]) == 0) {
 	  *upperCase = true;
+	  *lowerCase = false;
 	  continue;
 	}
 	if (checkArgFile(argv[k], ARG_LONG_INPUT, &offsetFile)) {
-	  if (validFile(argv[k] + offsetFile)) {
+	  if (validFileRead(argv[k] + offsetFile)) {
+		free(*inputFileName);
+		*inputFileName = malloc(strlen(argv[k] + offsetFile) + 1);
 	    strcpy(*inputFileName, argv[k] + offsetFile);
 	  } else {
 	    fprintf(stderr, "le fichier n'est pas valide\n");
@@ -144,7 +147,9 @@ int option(int argc, char** argv, bool* sort, bool* lowerCase, bool* upperCase,
 	  continue;
     }
     if (checkArgFile(argv[k], ARG_LONG_OUTPUT, &offsetFile)) {
-	  if (validFile(argv[k] + offsetFile)) {
+	  if (validFileWrite(argv[k] + offsetFile)) {
+		free(*outputFileName);
+		*outputFileName = malloc(strlen(argv[k] + offsetFile) + 1);
 	    strcpy(*outputFileName, argv[k] + offsetFile);
 	  } else {
 	    fprintf(stderr, "le fichier n'est pas valide\n");
@@ -189,13 +194,12 @@ bool checkArgFile(const char* arg, const char * value, size_t* k){
 void addCorrectsWords(list *anonymGlosaryWords, char *arg) {
   size_t k = 0;
   size_t index = 0;
-  char w[WORD_LENGTH_MAX];
+  char w[WORD_LENGTH_MAX + 1];
   w[0] = '\0';
   while (arg[k] != '\0') {
     if (ispunct(arg[k]) || isspace(arg[k])) {
 	  if (index != 0) {
-        printf("create str\n");
-	    char *t = malloc(index);
+	    char *t = malloc(index + 1);
 	    w[index] = '\0';
 	    strcpy(t, w);
   	    list_put(anonymGlosaryWords, t);
@@ -210,15 +214,24 @@ void addCorrectsWords(list *anonymGlosaryWords, char *arg) {
 	++k;
   }
   if (index != 0) {
-	char *t = malloc(index);
+	char *t = malloc(index + 1);
 	w[index] = '\0';
 	strcpy(t, w);
   	list_put(anonymGlosaryWords, t);
   }
 }
 
-bool validFile(char * filename) {
-  FILE* f = fopen(filename, "rw");
+bool validFileRead(char * filename) {
+  FILE* f = fopen(filename, "r");
+  if (f == NULL) {
+    return false;
+  }
+  fclose(f);
+  return true;
+}
+
+bool validFileWrite(char * filename) {
+  FILE* f = fopen(filename, "w");
   if (f == NULL) {
     return false;
   }
@@ -227,5 +240,6 @@ bool validFile(char * filename) {
 }
 
 void help() {
-	printf("bonjour");
+	printf("bonjour\n");
+	exit(EXIT_SUCCESS);
 }

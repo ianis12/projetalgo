@@ -1,7 +1,7 @@
-//  Implantation polymorphe pour la spécification du TDA Liste(T) dans le cas 
-//    d'une liste simplement chainée avec insertion en queue et avec 
+//  Implantation polymorphe pour la spécification du TDA Liste(T) dans le cas
+//    d'une liste simplement chainée avec insertion en queue et avec
 //    spécification d'une méthode simple d'itération efficace sur ses éléments dans
-//    l'ordre de la liste, grâce à un pointeur d'élément courant qui peut soit 
+//    l'ordre de la liste, grâce à un pointeur d'élément courant qui peut soit
 //    avancer (grâce à la fonction list_next) ou revenir au début de la liste
 //    (grâce à la fonction list_reset_current).
 

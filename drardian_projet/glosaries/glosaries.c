@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "glosaries.h"
 #include "hashtable.h"
 #include "holdall.h"
@@ -11,7 +12,7 @@
 
 #define WORD_LENGTH_MAX 63
 
-#define STR(s)  #s
+#define STR(s) #s
 #define XSTR(s) STR(s)
 
 
@@ -19,7 +20,7 @@
 #define FUN_FAILURE -1
 #define FUN_FOUND 1
 
-// struct glosaries, glosaries: 
+// struct glosaries, glosaries:
 
 typedef struct glosaries glosaries;
 
@@ -46,13 +47,15 @@ struct word_file_list {
 static size_t str_hashfun(const char *w);
 static int str__holdall_dispose_fun(char * str);
 static int word__holdall_dispose_fun(word *str);
+static bool glosaries_add_line_to_word(glosaries *g, char *str, size_t l);
+static char *glosaries_create_glosary(glosaries *gl, char *gl_str);
 
 static struct word_file_list *hashtable_file_value(
     struct hashtable_file_list *ht_f, char *str);
 static int word_file_display(char *cptr, struct word_file_list *w_f);
 
-//  Les fonctions qui suivent ont un comportement indéterminé si leurs 
-//    paramètres de type glosaries * n'est pas l'adresse d'un objet  
+//  Les fonctions qui suivent ont un comportement indéterminé si leurs
+//    paramètres de type glosaries * n'est pas l'adresse d'un objet
 //    préalablement renvoyé par glosaries_empty et non révoqué depuis par
 //    glosaries_dispose.
 
@@ -63,7 +66,7 @@ glosaries *glosaries_empty(void) {
   if (g == NULL) {
 	  return NULL;
   }
-  g->ht = hashtable_empty((int (*)(const void *, const void *))strcmp, 
+  g->ht = hashtable_empty((int (*)(const void *, const void *))strcmp,
       (size_t (*)(const void *))str_hashfun);
   if (g->ht == NULL) {
     free(g);
@@ -102,57 +105,129 @@ glosaries *glosaries_empty(void) {
   return g;
 }
 
-// list_put: insère l'élément xptr en queue de la liste associée à l, renvoies
-//    NULL si xptr vaut NULL ou en cas de dépassement de capacitée, renvois 
-//    xptr sinon
-bool glosaries_add(glosaries *g, const char *str, size_t line) {
-  word *w = (word *)hashtable_value(g->ht, str);
-  if (w != NULL) {
-    if (!word_add_line(w, line)) {
-		return false;
-	}
-  }
-  return true;
-}
-
-// glosaries_display: retourne les informations lié à notre 
+// glosaries_display: retourne les informations lié à notre
 //    glosaries tel que sa présence dans les différents lexiques
-//    ainsi que son numéro de ligne dans notre texte.    
-bool glosaries_display(glosaries *g, FILE *f) {
-  fprintf(f, "\t\t");
+//    ainsi que son numéro de ligne dans notre texte.
+bool glosaries_display(glosaries *g, char *outputFileName) {
+  FILE *f;
+  if (outputFileName == NULL) {
+    f = stdout;
+  } else {
+    f = fopen(outputFileName, "w");
+  }
+  fprintf(f, "\t");
   while (list_can_next(g->l_gl)) {
     fprintf(f, "%s", (char *) list_next(g->l_gl));
     fprintf(f, "\t");
   }
+  list_reset_current(g->l_gl);
   fprintf(f, "\n");
   struct hashtable_file_list ht_f_l;
   ht_f_l.ht = g->ht;
   ht_f_l.f = f;
   ht_f_l.l = g->l_gl;
-  holdall_apply_context(g->ha_str, 
-      (int (*)(void *, void *)) word_file_display, 
+  holdall_apply_context(g->ha_str,
+      (int (*)(void *, void *)) word_file_display,
       (void *(*)(void *, void *)) hashtable_file_value, &ht_f_l);
+  fclose(f);
   return NULL;
+}
+
+bool glosaries_read_text(glosaries *gl, char *fileName, bool lowerCase,
+    bool upperCase) {
+  FILE *input;
+  if (fileName == NULL) {
+	input = stdin;
+  } else {
+    input = fopen(fileName, "r");
+    if (input == NULL) {
+	  return false;
+	}
+  }
+  char strin[WORD_LENGTH_MAX + 1];
+  size_t line = 1;
+  size_t index = 0;
+  char c;
+  while ((c = (char)fgetc(input)) != EOF) {
+	if (ispunct(c) || isspace(c)) {
+	  if (index != 0) {
+	    strin[index] = '\0';
+	    if (!glosaries_add_line_to_word(gl, strin, line)) {
+		  return false;
+		}
+        index = 0;
+	  }
+	  if (c == '\n') {
+	    ++line;
+	  }
+    } else {
+	  if (index < WORD_LENGTH_MAX) {
+		if (lowerCase) {
+		  strin[index] = (char)tolower(c);
+		} else if (upperCase) {
+		  strin[index] = (char)toupper(c);
+		} else {
+		  strin[index] = c;
+		}
+	    ++index;
+	  }
+	}
+  }
+  if (ferror(input)) {
+  fclose(input);
+    return false;
+  }
+  fclose(input);
+  return true;
 }
 
 // glosaries_load_file: charge un fichier lexique. Si notre paramètre de type
 //    FILE* est NULL alors la fonction renverra false sinon renvoie true.
-bool glosaries_load_file(glosaries *g, FILE *f, char *gl) {
-  char w[WORD_LENGTH_MAX];
-  while (fscanf(f, "%" XSTR(WORD_LENGTH_MAX) "s", w) != EOF) {
-    if (!glosaries_add_glosary_to_word(g, w, gl)) {
-      return false;
-    }
+bool glosaries_load_glosary_file(glosaries *g, char *fileName, bool lowerCase,
+    bool upperCase) {
+  FILE *f = fopen(fileName, "r");
+  if (f == NULL) {
+    return false;
+  }
+
+  char w[WORD_LENGTH_MAX + 1];
+  size_t line = 1;
+  size_t index = 0;
+  char c;
+  while ((c = (char)fgetc(f)) != EOF) {
+	if (ispunct(c) || isspace(c)) {
+	  if (index != 0) {
+	    w[index] = '\0';
+	    if (!glosaries_add_glosary_to_word(g, w, fileName)) {
+		  return false;
+		}
+        index = 0;
+	  }
+	  if (c == '\n') {
+	    ++line;
+	  }
+    } else {
+	  if (index < WORD_LENGTH_MAX) {
+		if (lowerCase) {
+		  w[index] = (char)tolower(c);
+		} else if (upperCase) {
+		  w[index] = (char)toupper(c);
+		} else {
+		  w[index] = c;
+		}
+	    ++index;
+	  }
+	}
   }
   if (ferror(f)) {
-    fclose(f);
+  fclose(f);
     return false;
   }
   fclose(f);
   return true;
 }
 
-// glosaries_dispose: libère toutes les ressources associés à la structure 
+// glosaries_dispose: libère toutes les ressources associés à la structure
 //    de *g puis affecte à *g la valeur NULL
 void glosaries_dispose(glosaries **g) {
   hashtable_dispose(&(*g)->ht);
@@ -178,18 +253,18 @@ size_t str_hashfun(const char *s) {
   return h;
 }
 
-char *glosaries_add_glosary(glosaries *g, char *gl) {
+char *glosaries_create_glosary(glosaries *g, char *gl) {
   bool exist = false;
   char *result = NULL;
   while (list_can_next(g->l_gl)) {
     result = (char *) list_next(g->l_gl);
     if (strcmp(gl, result) == 0) {
-      exist = true;  
+      exist = true;
     }
   }
   list_reset_current(g->l_gl);
   if (!exist) {
-    char *str = malloc(strlen(gl));
+    char *str = malloc(strlen(gl) + 1);
     if (str == NULL) {
       return NULL;
     }
@@ -204,33 +279,51 @@ char *glosaries_add_glosary(glosaries *g, char *gl) {
 
 
 //  glosaries__add_glosary_to_word: permet l'ajout du lexique gl a un mot créé
-//    à partir de str si il n'existe pas déjà, la fonction gère elle même la 
-//    mémoire uttilisée pour la création du lexique et du mot. 
+//    à partir de str si il n'existe pas déjà, la fonction gère elle même la
+//    mémoire uttilisée pour la création du lexique et du mot.
 //    cette fonction a un comportement indéterminé si le lexique était déja
 //    ajouté au mot
 bool glosaries_add_glosary_to_word(glosaries *g, char *str, char *gl) {
   word *w = (word *) hashtable_value(g->ht, str);
-  
   if (w == NULL) {
     w = word_create();
     if (w == NULL) {
       return false;
     }
     holdall_put(g->ha_word, w);
-    char *strb = malloc(strlen(str));
+    char *strb = malloc(strlen(str) + 1);
     if (strb == NULL) {
 	  return false;
 	}
-	holdall_put(g->ha_str, strb);
     strcpy(strb, str);
+	holdall_put(g->ha_str, strb);
     hashtable_add(g->ht, strb, w);
+  } else {
+    while (word_can_next_glosary(w)) {
+	  if (strcmp(gl, word_next_glosary(w)) == 0) {
+        word_reset_current_glosary(w);
+        return true;
+	  }
+    }
+    word_reset_current_glosary(w);
   }
-  char *glptr = glosaries_add_glosary(g, gl);
+  char *glptr = glosaries_create_glosary(g, gl);
   if (glptr == NULL) {
 	  return false;
   }
   if (!word_add_glosary(w, glptr)) {
     return false;
+  }
+  return true;
+}
+
+bool glosaries_add_line_to_word(glosaries *g, char *str, size_t l) {
+  word *w = (word *) hashtable_value(g->ht, str);
+  if (w == NULL) {
+    return true;
+  }
+  if (!word_add_line(w, l)) {
+	  return false;
   }
   return true;
 }
@@ -269,23 +362,29 @@ int word_file_display(char *cptr, struct word_file_list *w_f_l) {
   list *l = w_f_l->l;
   free(w_f_l);
   fprintf(f, "%s", cptr);
-  while(word_can_next_glosary(w)) {
+  while (word_can_next_glosary(w)) {
     char *wtmp = word_next_glosary(w);
-    while (wtmp != list_next(l)) {
-      fprintf(f, "\t");
-	}
-    fprintf(f, "x");
+    while (wtmp != (char *)list_next(l)) {
+	  fprintf(f, "\t");
+    }
+    fprintf(f, "\tx");
+  }
+  while (list_can_next(l)) {
+	list_next(l);
     fprintf(f, "\t");
   }
+  list_reset_current(l);
   word_reset_current_glosary(w);
+  fprintf(f, "\t");
   bool can_next = word_can_next_line(w);
   while (can_next) {
-    fprintf(f, "%s", (char *) word_next_line(w));
+    fprintf(f, "%zu", word_next_line(w));
     can_next = word_can_next_line(w);
     if (can_next) {
 	  fprintf(f, ",");
 	}
   }
+  word_reset_current_line(w);
   fprintf(f, "\n");
   return FUN_SUCCESS;
 }

@@ -41,7 +41,7 @@ extern list *list_empty(void);
 //    sinon
 extern const void *list_put(list *l, const void *xptr);
 
-//  list_next: permet de faire avancer le pointeur courant de la liste associée 
+//  list_next: permet de faire avancer le pointeur courant de la liste associée
 //    à l vers la valeure suivante au sens de la liste. Elle renvois l'élément
 //    courant par la même occasion.
 //    Cette fonction a un comportement indéterminé si list_can_next n'est pas
@@ -59,19 +59,19 @@ extern const void *list_next(list *l);
 //    vide
 extern bool list_can_next(const list *l);
 
-//  list_reset_current: met le pointeur courant de la liste associée à l au 
+//  list_reset_current: met le pointeur courant de la liste associée à l au
 //    début de celle ci. Le prochain appel à list_next le renverra (donc sauf si
 //    la liste est vide).
 extern void list_reset_current(list *l);
 
-//  list_is_empty: retourne un booléen représentant l'état de vacuité de la 
+//  list_is_empty: retourne un booléen représentant l'état de vacuité de la
 //    liste associée a l, true si la liste est vide, false sinon
 extern bool list_is_empty(const list *l);
 
 //  list_size: retourne le nombre d'éléments présent dans la liste associée a l
 extern size_t list_size(const list *l);
 
-//  list_dispose: libère toutes les ressources associés à la structure de *l 
+//  list_dispose: libère toutes les ressources associés à la structure de *l
 //    puis affecte à *l la valeure NULL
 extern void list_dispose(list **l);
 

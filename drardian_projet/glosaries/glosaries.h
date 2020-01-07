@@ -8,12 +8,12 @@
 #include <stdio.h>
 #include "word.h"
 
-// struct glosaries, glosaries: 
+// struct glosaries, glosaries:
 
 typedef struct glosaries glosaries;
 
-//  Les fonctions qui suivent ont un comportement indéterminé si leurs 
-//    paramètres de type glosaries * n'est pas l'adresse d'un objet  
+//  Les fonctions qui suivent ont un comportement indéterminé si leurs
+//    paramètres de type glosaries * n'est pas l'adresse d'un objet
 //    préalablement renvoyé par glosaries_empty et non révoqué depuis par
 //    glosaries_dispose.
 
@@ -22,22 +22,25 @@ typedef struct glosaries glosaries;
 extern glosaries *glosaries_empty(void);
 
 // list_put: insère l'élément xptr en queue de la liste associée à l, renvoies
-//    NULL si xptr vaut NULL ou en cas de dépassement de capacitée, renvois 
+//    NULL si xptr vaut NULL ou en cas de dépassement de capacitée, renvois
 //    xptr sinon
-extern bool glosaries_add(glosaries *g, const char *str, size_t line);
 
 extern bool glosaries_add_glosary_to_word(glosaries *g, char *str, char *gl);
 
-// glosaries_informations: retourne les informations lié à notre 
+// glosaries_informations: retourne les informations lié à notre
 //    glosaries tel que sa présence dans les différents lexiques
-//    ainsi que son numéro de ligne dans notre texte.    
-extern bool glosaries_display(glosaries *g, FILE* f);
+//    ainsi que son numéro de ligne dans notre texte.
+extern bool glosaries_display(glosaries *g,  char *outputFileName);
 
 // glosaries_load_file: charge un fichier lexique. Si notre paramètre de type
 //    FILE* est NULL alors la fonction renverra false sinon renvoie true.
-extern bool glosaries_load_file(glosaries *g, FILE *f, char *gl);
+extern bool glosaries_load_glosary_file(glosaries *g, char *fileName,
+    bool lowerCase, bool upperCase);
 
-// glosaries_dispose: libère toutes les ressources associés à la structure 
+extern bool glosaries_read_text(glosaries *g, char *fileName, bool lowerCase,
+    bool upperCase);
+
+// glosaries_dispose: libère toutes les ressources associés à la structure
 //    de *g puis affecte à *g la valeur NULL
 extern void glosaries_dispose(glosaries **g);
 
