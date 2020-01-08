@@ -17,20 +17,22 @@ typedef struct glosaries glosaries;
 //    préalablement renvoyé par glosaries_empty et non révoqué depuis par
 //    glosaries_dispose.
 
-// list_empty: crée une structure de donnés correspondant à une liste vide et
-//    renvois son pointeur associé ou NULL en cas de dépassement de capacitée
+// glosaries_empty: crée une structure de donnés correspondant à un glosaries
+// vide et renvois son pointeur associé ou NULL en cas de dépassement de
+// capacitée
 extern glosaries *glosaries_empty(void);
 
-// list_put: insère l'élément xptr en queue de la liste associée à l, renvoies
-//    NULL si xptr vaut NULL ou en cas de dépassement de capacitée, renvois
-//    xptr sinon
-
+//  glosaries__add_glosary_to_word: permet l'ajout du lexique gl a un mot créé
+//    à partir de str si il n'existe pas déjà, la fonction gère elle même la
+//    mémoire uttilisée pour la création du lexique et du mot.
+//    cette fonction a un comportement indéterminé si le lexique était déja
+//    ajouté au mot
 extern bool glosaries_add_glosary_to_word(glosaries *g, char *str, char *gl);
 
-// glosaries_informations: retourne les informations lié à notre
+// glosaries_display: retourne les informations lié à notre
 //    glosaries tel que sa présence dans les différents lexiques
 //    ainsi que son numéro de ligne dans notre texte.
-extern bool glosaries_display(glosaries *g,  char *outputFileName);
+extern bool glosaries_display(glosaries *g, char *outputFileName);
 
 // glosaries_load_file: charge un fichier lexique. Si notre paramètre de type
 //    FILE* est NULL alors la fonction renverra false sinon renvoie true.
@@ -43,6 +45,5 @@ extern bool glosaries_read_text(glosaries *g, char *fileName, bool lowerCase,
 // glosaries_dispose: libère toutes les ressources associés à la structure
 //    de *g puis affecte à *g la valeur NULL
 extern void glosaries_dispose(glosaries **g);
-
 
 #endif

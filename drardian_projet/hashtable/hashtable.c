@@ -96,8 +96,8 @@ hashtable *hashtable_empty(int (*compar)(const void *, const void *),
     ht->hasharray[k] = NULL;
   }
   ht->nslots = HT__NSLOTS_MIN;
-  ht->nentriesmax =
-      (size_t) (HT__NSLOTS_MIN / HT__LDFACT_MAX_DENOM * HT__LDFACT_MAX_NUMER);
+  ht->nentriesmax
+    = (size_t) (HT__NSLOTS_MIN / HT__LDFACT_MAX_DENOM * HT__LDFACT_MAX_NUMER);
   ht->nentries = 0;
   return ht;
 }
@@ -252,13 +252,13 @@ int hashtable_display_checkup(const hashtable *ht, FILE *textstream) {
   struct hashtable_checkup htcu;
   hashtable_get_checkup(ht, &htcu);
   return 0 > P_TITLE(textstream, "Hashtable checkup")
-      || 0 > P_VALUE(textstream, "n.slots", "%zu", htcu.nslots)
-      || 0 > P_VALUE(textstream, "n.entries", "%zu", htcu.nentries)
-      || 0 > P_VALUE(textstream, "ld.fact.max", "%lf", htcu.ldfactmax)
-      || 0 > P_VALUE(textstream, "ld.fact.curr", "%lf", htcu.ldfactcurr)
-      || 0 > P_VALUE(textstream, "max.len", "%zu", htcu.maxlen)
-      || 0 > P_VALUE(textstream, "pos.theo", "%lf", htcu.postheo)
-      || 0 > P_VALUE(textstream, "pos.curr", "%lf", htcu.poscurr);
+         || 0 > P_VALUE(textstream, "n.slots", "%zu", htcu.nslots)
+         || 0 > P_VALUE(textstream, "n.entries", "%zu", htcu.nentries)
+         || 0 > P_VALUE(textstream, "ld.fact.max", "%lf", htcu.ldfactmax)
+         || 0 > P_VALUE(textstream, "ld.fact.curr", "%lf", htcu.ldfactcurr)
+         || 0 > P_VALUE(textstream, "max.len", "%zu", htcu.maxlen)
+         || 0 > P_VALUE(textstream, "pos.theo", "%lf", htcu.postheo)
+         || 0 > P_VALUE(textstream, "pos.curr", "%lf", htcu.poscurr);
 }
 
 #endif
