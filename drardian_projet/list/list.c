@@ -1,6 +1,7 @@
 //  Implantation polymorphe pour la spécification du TDA Liste(T) dans le cas
 //    d'une liste simplement chainée avec insertion en queue et avec
-//    spécification d'une méthode simple d'itération efficace sur ses éléments dans
+//    spécification d'une méthode simple d'itération efficace sur ses éléments
+// dans
 //    l'ordre de la liste, grâce à un pointeur d'élément courant qui peut soit
 //    avancer (grâce à la fonction list_next) ou revenir au début de la liste
 //    (grâce à la fonction list_reset_current).
@@ -35,12 +36,6 @@ struct list {
   cell *current;
 };
 
-//  Les fonctions qui suivent ont un comportement indéterminé si leur paramètre
-//    de type list * n'est pas l'adresse d'un objet préalablement renvoyé
-//    par list_empty et non révoqué depuis par list_dispose.
-
-// list_empty: crée une structure de donnés correspondant à une liste vide et
-//    renvois son pointeur associé ou NULL en cas de dépassement de capacitée
 list *list_empty(void) {
   list *l = malloc(sizeof(list));
   if (l == NULL) {
@@ -53,9 +48,6 @@ list *list_empty(void) {
   return l;
 }
 
-// list_put: insère l'élément xptr en queue de la liste associée à l, renvoies
-//    NULL si xptr vaut NULL ou en cas de dépassement de capacitée, renvois xptr
-//    sinon
 const void *list_put(list *l, const void *xptr) {
   cell *c = malloc(sizeof(cell));
   if (c == NULL) {
@@ -75,58 +67,36 @@ const void *list_put(list *l, const void *xptr) {
   return c;
 }
 
-// list_next: permet de faire avancer le pointeur courant de la liste associée à
-//    l vers la valeure suivante au sens de la liste. Elle renvois l'élément
-//    courant par la même occasion.
-//    Cette fonction a un comportement indéterminé si list_can_next n'est pas
-//    vérifié en entrée.
-//    Si l'élément courant est le dernier élément de la liste, list_next le
-//    renvois et list_can_next renverra false à ses prochains appels, pour
-//    sortir de cet cet état, il faut alors uttiliser list_reset_current pour
-//    remetre le pointeur courant sur le premier élément de la liste
 const void *list_next(list *l) {
   cell *temp = l->current;
   l->current = l->current->next;
   return temp->valueptr;
 }
 
-// list_can_next: renvoies un booléen représentant la capacitée de la liste
-//    associée à l, d'avancer le pointeur courant vers le prochain élément,
-//    c'est à dire : revoies true si cet élément existe ou si l'élément courant
-//    est le dernier élément, false sinon renvois donc false en cas de liste
-//    vide
 bool list_can_next(const list *l) {
   return !(l->current == NULL);
 }
 
-// list_reset_current: met le pointeur courant de la liste associée à l au début
-//    de celle ci. Le prochain appel à list_next le renverra (donc sauf si la
-//    liste est vide).
 void list_reset_current(list *l) {
   l->current = l->head;
 }
 
-// list_is_empty: retourne un booléen représentant l'état de vacuité de la liste
-//    associée a l, true si la liste est vide, false sinon
 bool list_is_empty(const list *l) {
   return l->size == 0;
 }
 
-// list_size: retourne le nombre d'éléments présent dans la liste associée a l
 size_t list_size(const list *l) {
   return l->size;
 }
 
-// list_dispose: libère toutes les ressources associés à la structure de *l puis
-//    affecte à *l la valeure NULL
 void list_dispose(list **l) {
-	if ((*l)->head != NULL) {
-		cell *cptr = (*l)->head;
-		(*l)->head = (*l)->head->next;
-		free(cptr);
-		list_dispose(l);
-	} else {
-	  free(*l);
-	  *l = NULL;
-	}
+  if ((*l)->head != NULL) {
+    cell *cptr = (*l)->head;
+    (*l)->head = (*l)->head->next;
+    free(cptr);
+    list_dispose(l);
+  } else {
+    free(*l);
+    *l = NULL;
+  }
 }
